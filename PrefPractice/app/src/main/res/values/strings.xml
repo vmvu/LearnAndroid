@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">PrefPractice</string>
+    <string name="prefTitle">My Preferences</string>
+    <string name="prefSummary">Set Flight Option Preferences</string>
+    <string name="flight_sort_option_default_value">1</string>
+    <string name="dialogTitle">Choose Flight Options</string>
+    <string name="listSummary">Set Search Options</string>
+    <string name="listTitle">Flight Options</string>
+    <string name="menu_prefs_title">Settings</string>
+
+    <string name="flight_sort_option_key">flight_sort_option</string>
+    <string name="package_name_preference_key">package_name_preference</string>
+    <string name="alert_email_address_key">alert_email_address</string>
+    <string name="pizza_toppings_key">pizza_toppings</string>
+    <string name="flight_columns_pref_key">flight_columns_pref</string>
+    <string name="alert_email_key">alert_email</string>
+</resources>

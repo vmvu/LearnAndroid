@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="flight_sort_option">
+        <item>Total Cost</item>
+        <item>$ of Stop</item>
+        <item>Airline</item>
+    </string-array>
+
+    <string-array name="pizza_toppings">
+        <item>Cheese</item>
+        <item>Pepperoni</item>
+        <item>Onions</item>
+        <item>Portabello Mushroom</item>
+        <item>Black Olives</item>
+        <item>Smoke ham</item>
+        <item>Pineapple</item>
+    </string-array>
+
+</resources>
