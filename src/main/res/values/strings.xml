@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Notepad</string>
+
+    <string name="insert_menu">Insert now</string>
+    <string name="Loading_menu">Loading !</string>
+    <string name="setting_menu">Setting</string>
+
+    <string name="broadcast_receiver_pin">pinbroadcast</string>
+    <string name="content_authority">com.minhvu.proandroid.sqlite.database</string>
+    <string name="popup_delete">Delete</string>
+    <string name="youtube_host">https://www.youtube.com</string>
+
+    <string name="notify_note_pin_uri">note_uri</string>
+    <string name="notify_note_pin_title">title_note_pin</string>
+    <string name="notify_note_pin_content">content_note_pin</string>
+    <string name="notify_note_pin_remove">remove_note_pin</string>
+
+    <string name="TAG_KEY_PIN_COLOR">header</string>
+    <string name="TAG_KEY_PIN_COLOR_BG">bg</string>
+
+
+</resources>
