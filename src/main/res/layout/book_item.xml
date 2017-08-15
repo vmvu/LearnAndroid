@@ -26,7 +26,7 @@
             android:id="@+id/viewGroupBG"
             android:layout_width="match_parent"
             android:layout_height="100dp"
-            android:background="@color/backgroundColor_default">
+            tools:background="@color/backgroundColor_default">
 
             <LinearLayout
                 android:id="@+id/viewTop"
@@ -44,7 +44,6 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:textColor="#00218f"
-
                     android:textStyle="bold"
                     tools:text="Pro android 5" />
 

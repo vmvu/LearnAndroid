@@ -10,13 +10,17 @@
     <string name="popup_delete">Delete</string>
     <string name="youtube_host">https://www.youtube.com</string>
 
-    <string name="notify_note_pin_uri">note_uri</string>
-    <string name="notify_note_pin_title">title_note_pin</string>
-    <string name="notify_note_pin_content">content_note_pin</string>
-    <string name="notify_note_pin_remove">remove_note_pin</string>
+    <string name="notify_note_uri">note_uri</string>
+    <string name="notify_note_title">title_note_pin</string>
+    <string name="notify_note_content">content_note_pin</string>
+    <string name="notify_note_remove">remove_note_pin</string>
+    <string name="notify_note_color">color_note_pin</string>
+    <string name="notify_note_pin">note_pin</string>
 
     <string name="TAG_KEY_PIN_COLOR">header</string>
     <string name="TAG_KEY_PIN_COLOR_BG">bg</string>
 
+
+    <string name="PREFS_ALARM_FILE">states_alarm_files</string>
 
 </resources>

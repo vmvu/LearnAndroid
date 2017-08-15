@@ -30,8 +30,8 @@ import com.minhvu.proandroid.sqlite.database.db.BookContract;
  * Created by vomin on 8/7/2017.
  */
 
-public class ReceiverShareActivity extends FragmentActivity {
-    private static final String LOGTAG = "ReceiverShareActivity";
+public class PopupActivity extends FragmentActivity {
+    private static final String LOGTAG = PopupActivity.class.getSimpleName();
     private ImageButton btnSave;
     private ImageButton btnClose;
     private BookDetailFragment detailFragment;
@@ -66,6 +66,7 @@ public class ReceiverShareActivity extends FragmentActivity {
         btnClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                detailFragment.setBookHasChanged(false);
                 finish();
             }
         });

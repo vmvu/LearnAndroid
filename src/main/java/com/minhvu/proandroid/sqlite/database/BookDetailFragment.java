@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
@@ -15,9 +16,11 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.content.SharedPreferencesCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SwitchCompat;
 import android.text.Editable;
 import android.text.Layout;
 import android.text.TextUtils;
@@ -33,8 +36,10 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.minhvu.proandroid.sqlite.database.adapter.ColorAdapter;
@@ -59,6 +64,8 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
     private static int TAG_KEY_PIN_COLOR = 66;
     private static int TAG_KEY_PIN_COLOR_BG = 10;
     private boolean mBookHasChanged = false;
+
+    private static final String ALARM_SWITCH_KEY= "alarm";
 
     private Uri mCurrentBookUri;
     private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
@@ -127,6 +134,13 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
             }
         });
 
+        btnSetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popupSettingTable(btnSetting);
+            }
+        });
+
         etTitle.setOnTouchListener(mTouchListener);
         etContent.setOnTouchListener(mTouchListener);
 
@@ -172,6 +186,23 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
         }
     }
 
+    private void pinNoteToNotify() {
+        boolean isPin = (boolean) btnPin.getTag();
+        String action_broadcast = getString(R.string.broadcast_receiver_pin);
+
+        Intent intent = new Intent(action_broadcast);
+        intent.putExtra(getString(R.string.notify_note_uri), mCurrentBookUri.toString());
+        if (isPin) {
+            intent.putExtra(getString(R.string.notify_note_title), etTitle.getText().toString());
+            intent.putExtra(getString(R.string.notify_note_content), etContent.getText().toString());
+            intent.putExtra(getString(R.string.notify_note_color),(int)btnPin.getTag(R.string.TAG_KEY_PIN_COLOR_BG));
+            intent.putExtra(getString(R.string.notify_note_pin), true);
+        } else {
+            intent.putExtra(getString(R.string.notify_note_remove), true);
+        }
+        getActivity().sendBroadcast(intent);
+    }
+
     private void popupColorTable(final ViewGroup viewGroup, View view) {
         int popupWidth = 500;
         int popupHeight = 450;
@@ -214,17 +245,144 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
         viewGroup.setBackgroundColor(color.getBackgroundColor());
     }
 
-    private void popupSettingTable() {
+    private void popupSettingTable(View view) {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 
-        int popupWith = displayMetrics.widthPixels - 200;
-        int popupHeight = displayMetrics.heightPixels - 400;
+        int popupWith = 150;
+        int popupHeight = displayMetrics.heightPixels;
 
-        LayoutInflater layoutInflater = (LayoutInflater) getActivity().getBaseContext()
+        int[] local = new int[2];
+        view.getLocationInWindow(local);
+
+        final LayoutInflater layoutInflater = (LayoutInflater) getActivity().getBaseContext()
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View layout = layoutInflater.inflate(R.layout.popup_setting_table,null);
+
+        final PopupWindow popup = new PopupWindow(getActivity());
+        popup.setContentView(layout);
+        popup.setWidth(popupWith);
+        popup.setHeight(popupHeight);
+        popup.setFocusable(true);
+        popup.setBackgroundDrawable(new BitmapDrawable());
+        popup.showAtLocation(layout, Gravity.NO_GRAVITY, local[0], local[1] + 150);
+
+        final ImageView ivAlarm = (ImageView) layout.findViewById(R.id.ivAlarm);
+        ivAlarm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                View layout = layoutInflater.inflate(R.layout.popup_alarm_choose, null);
+                implSettingTable(ivAlarm, layout,800, 500);
+                saveData();
+                chooseAlarmMode(layout);
+            }
+        });
+
+        final ImageView ivDelete = (ImageView) layout.findViewById(R.id.ivDelete);
+        ivDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                View layout = layoutInflater.inflate(R.layout.popup_delete, null);
+                implSettingTable(ivDelete, layout, 600, 300);
+            }
+        });
+        final ImageView ivPassWord = (ImageView) layout.findViewById(R.id.ivPassword);
+        ivPassWord.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                View layout = layoutInflater.inflate(R.layout.popup_password_set, null);
+                implSettingTable(ivPassWord, layout, 600, 400);
+            }
+        });
+    }
+
+
+    public void implSettingTable(View parentView,View layout,int popWidth, int popHeight){
+
+        int[] localView = new int[2];
+        parentView.getLocationOnScreen(localView);
+        Log.d(LOGTAG, "width:" + localView[0] + " height:"+localView[1]);
+
+        final PopupWindow popup = new PopupWindow(getActivity());
+        popup.setContentView(layout);
+        popup.setWidth(popWidth);
+        popup.setHeight(popHeight);
+        popup.setFocusable(true);
+        popup.setBackgroundDrawable(new BitmapDrawable());
+        popup.showAtLocation(layout, Gravity.NO_GRAVITY, localView[0] - popWidth, localView[1] - 100);
 
     }
+
+    private void chooseAlarmMode(View layout ){
+        final SwitchCompat sc15Min = (SwitchCompat) layout.findViewById(R.id.sc15Minute);
+        final SwitchCompat sc30Min = (SwitchCompat) layout.findViewById(R.id.sc30Minute);
+        final SwitchCompat scWhen = (SwitchCompat) layout.findViewById(R.id.scWhen);
+        final SwitchCompat scAllDay = (SwitchCompat) layout.findViewById(R.id.scAllDay);
+        final SwitchCompat scReset = (SwitchCompat) layout.findViewById(R.id.scReset);
+
+        sc15Min.setTag("sc15Min");
+        sc30Min.setTag("sc30Min");
+        scWhen.setTag("scWhen");
+        scAllDay.setTag("scAllDay");
+        scReset.setTag("scReset");
+
+        final String pref_file = getString(R.string.PREFS_ALARM_FILE);
+
+        final SharedPreferences pref = getActivity().getSharedPreferences(pref_file, Context.MODE_PRIVATE);
+        String id = this.ALARM_SWITCH_KEY + mCurrentBookUri.getPathSegments().get(1);
+        String switchState = pref.getString(id, null);
+        final SwitchCompat[] sc = new SwitchCompat[]{sc15Min, sc30Min, scWhen,scAllDay ,scReset};
+        if(TextUtils.isEmpty(switchState)){
+            scReset.setChecked(true);
+        }else{
+            setCheckForSwitch(sc, switchState, pref_file);
+        }
+
+        View.OnClickListener scOnClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SwitchCompat scTemps = (SwitchCompat) v;
+                if(scTemps.isChecked()){
+                    setCheckForSwitch(sc, scTemps.getTag(), pref_file);
+                }else{
+                    scReset.setChecked(true);
+                    saveStateSwitch(pref_file, "scReset");
+                }
+            }
+        };
+
+        sc15Min.setOnClickListener(scOnClickListener);
+        sc30Min.setOnClickListener(scOnClickListener);
+        scWhen.setOnClickListener(scOnClickListener);
+        scAllDay.setOnClickListener(scOnClickListener);
+        scReset.setOnClickListener(scOnClickListener);
+
+    }
+
+
+
+    private void setCheckForSwitch(SwitchCompat[] sc, Object switchType, String fileName){
+        for(int i = 0 ; i < sc.length; i++){
+            if(sc[i].getTag().equals(switchType)){
+                sc[i].setChecked(true);
+                saveStateSwitch(fileName.toString(), switchType.toString());
+            }else{
+                sc[i].setChecked(false);
+            }
+        }
+    }
+
+    private void saveStateSwitch(String fileName, String switchType){
+        SharedPreferences.Editor editor =
+                getActivity().getSharedPreferences(fileName, Context.MODE_PRIVATE).edit();
+
+        String id ="alarm" + mCurrentBookUri.getPathSegments().get(1);
+        editor.putString(id, switchType);
+        editor.commit();
+    }
+
+
+
 
     @Override
     public void onResume() {
@@ -283,20 +441,7 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
         Toast.makeText(getContext(), context, Toast.LENGTH_SHORT).show();
     }
 
-    private void pinNoteToNotify() {
-        boolean isPin = (boolean) btnPin.getTag();
-        String action_broadcast = getString(R.string.broadcast_receiver_pin);
 
-        Intent intent = new Intent(action_broadcast);
-        intent.putExtra(getString(R.string.notify_note_pin_uri), mCurrentBookUri.toString());
-        if (isPin) {
-            intent.putExtra(getString(R.string.notify_note_pin_title), etTitle.getText().toString());
-            intent.putExtra(getString(R.string.notify_note_pin_content), etContent.getText().toString());
-        } else {
-            intent.putExtra(getString(R.string.notify_note_pin_remove), true);
-        }
-        getActivity().sendBroadcast(intent);
-    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -348,6 +493,10 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
     public void setContentShare(String contentShare) {
         this.contentShare = contentShare;
         mBookHasChanged = true;
+    }
+
+    public void setBookHasChanged(boolean bookHasChanged){
+        this.mBookHasChanged = bookHasChanged;
     }
 
 
