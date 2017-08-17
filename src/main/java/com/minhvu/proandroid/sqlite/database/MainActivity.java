@@ -148,8 +148,8 @@ public class MainActivity extends AppCompatActivity
             return;
         String action_broadcast = getString(R.string.broadcast_receiver_pin);
         Intent intent = new Intent(action_broadcast);
-        intent.putExtra(getString(R.string.notify_note_pin_uri), uri.toString());
-        intent.putExtra(getString(R.string.notify_note_pin_remove), true);
+        intent.putExtra(getString(R.string.notify_note_uri), uri.toString());
+        intent.putExtra(getString(R.string.notify_note_remove), true);
         sendBroadcast(intent);
     }
 

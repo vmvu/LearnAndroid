@@ -22,5 +22,8 @@
 
 
     <string name="PREFS_ALARM_FILE">states_alarm_files</string>
+    <string name="PREFS_ALARM_FROM_DATE">alarm_from_date</string>
+    <string name="PREFS_ALARM_TO_DATE">alarm_to_date</string>
+    <string name="PREFS_ALARM_WHEN">alarm_when</string>
 
 </resources>
