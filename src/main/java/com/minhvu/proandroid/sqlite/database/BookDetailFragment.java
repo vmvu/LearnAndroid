@@ -16,6 +16,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.icu.text.SimpleDateFormat;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -69,7 +70,6 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
 
     private boolean mBookHasChanged = false;
 
-    private static final String ALARM_SWITCH_KEY = "remind_to_me";
 
 
     private Uri mCurrentBookUri;
@@ -130,6 +130,7 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
                 popupColorTable(btnPin);
             }
         });
+
 
 
         btnSetting.setOnClickListener(new View.OnClickListener() {
@@ -298,7 +299,7 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
         final String pref_file = getString(R.string.PREFS_ALARM_FILE);
 
         final SharedPreferences pref = getActivity().getSharedPreferences(pref_file, Context.MODE_PRIVATE);
-        String id = BookDetailFragment.ALARM_SWITCH_KEY + mCurrentBookUri.getPathSegments().get(1);
+        String id = getString(R.string.PREFS_ALARM_SWITCH_KEY) + mCurrentBookUri.getPathSegments().get(1);
         String switchState = pref.getString(id, null);
         final SwitchCompat[] sc = new SwitchCompat[]{scPin, sc15Min, sc30Min, scWhen, scAllDay, scReset};
         if (TextUtils.isEmpty(switchState) || switchState.equals(scReset.getTag().toString())) {
@@ -311,6 +312,7 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
             @Override
             public void onClick(View v) {
                 SwitchCompat scTemps = (SwitchCompat) v;
+                Log.d("Pin", "scOnCLickListener");
                 if (scTemps.isChecked()) {
                     Toast.makeText(getContext(), scTemps.getTag() + "/" + scAllDay.getTag(), Toast.LENGTH_SHORT).show();
                     if (scTemps.getTag().equals(scAllDay.getTag())) {
@@ -323,15 +325,17 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
                     }
                     else{
                         setCheckForSwitch(sc, scTemps.getTag().toString(), pref_file);
+                        activeNotification(pref_file);
+
                     }
                 } else {
                     scReset.setChecked(true);
-                    saveStateSwitch(pref_file, BookDetailFragment.ALARM_SWITCH_KEY, "scReset");
+                    saveStateSwitch(pref_file, getString(R.string.PREFS_ALARM_SWITCH_KEY), "scReset");
                     activeNotification(pref_file);
                 }
             }
         };
-
+        Log.d("Pin", "after scOnClickListener");
         scPin.setOnClickListener(scOnClickListener);
         sc15Min.setOnClickListener(scOnClickListener);
         sc30Min.setOnClickListener(scOnClickListener);
@@ -345,12 +349,11 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
         for (SwitchCompat s: sc) {
             if (s.getTag().toString().equals(switchType)) {
                 s.setChecked(true);
-                saveStateSwitch(fileName, BookDetailFragment.ALARM_SWITCH_KEY, switchType);
+                saveStateSwitch(fileName, getString(R.string.PREFS_ALARM_SWITCH_KEY) , switchType);
             } else {
                 s.setChecked(false);
             }
         }
-        activeNotification(fileName);
     }
 
     private void saveStateSwitch(String fileName, String key, String switchType) {
@@ -366,10 +369,12 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
         String id =  mCurrentBookUri.getPathSegments().get(1);
         int idIntType = Integer.parseInt(id.trim());
         SharedPreferences pref = getActivity().getSharedPreferences(fileName, Context.MODE_PRIVATE);
-        String switchType = pref.getString(BookDetailFragment.ALARM_SWITCH_KEY + id, null);
+        String switchType = pref.getString(getString(R.string.PREFS_ALARM_SWITCH_KEY) + id, null);
+        Log.d("Pin", "switchType4: " + switchType);
         if (switchType == null) {
             return;
         }
+        Log.d("Pin", "switchType5: " + switchType);
         String action_broadcast = getString(R.string.broadcast_receiver_pin);
 
         Intent intent = new Intent(action_broadcast);
@@ -384,54 +389,54 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
                 getActivity().sendBroadcast(intent);
                 return;
             case "sc15Min":
-                alarm(intent, System.currentTimeMillis() + 15 * 60000, idIntType);
+                alarm(intent, System.currentTimeMillis() + 15 * 60000, idIntType, false);
                 break;
             case "sc30Min":
-                alarm(intent, System.currentTimeMillis() + 30 * 60000, idIntType);
+                alarm(intent, System.currentTimeMillis() + 30 * 60000, idIntType, false);
                 break;
             case "scWhen" :
-                alarmForWhenAndAddDay(pref, intent, id, idIntType);
+                alarmForWhenAndAddDay(pref, intent, id, idIntType, false);
                 break;
             case "scAllDay":
                 intent.putExtra(getString(R.string.PREFS_ALARM_TO_DATE),
-                        pref.getString(getString(R.string.PREFS_ALARM_TO_DATE), "0"));
-                alarmForWhenAndAddDay(pref, intent, id, idIntType);
+                        pref.getString(getString(R.string.PREFS_ALARM_TO_DATE) + id, "0"));
+                alarmForWhenAndAddDay(pref, intent, id, idIntType, true);
                 break;
             default:
                 cancelAlarmAndNotification(intent, idIntType, fileName);
                 break;
         }
     }
-    private void alarmForWhenAndAddDay(SharedPreferences pref,Intent intent, String id, int idIntType){
-        intent.putExtra(getString(R.string.PREFS_ALARM_FROM_DATE),
-                pref.getString(getString(R.string.PREFS_ALARM_FROM_DATE), "0"));
-        intent.putExtra(getString(R.string.PREFS_ALARM_WHEN),
-                pref.getString(getString(R.string.PREFS_ALARM_WHEN), "0"));
+    private void alarmForWhenAndAddDay(SharedPreferences pref,Intent intent, String id, int idIntType,boolean isRepeater){
 
         String date = pref.getString( getString(R.string.PREFS_ALARM_FROM_DATE) + id, "0");
         String time  = pref.getString(getString(R.string.PREFS_ALARM_WHEN) +id,"0");
         long timeLongType = Long.parseLong(time);
         int minute = (int)((timeLongType / 60000) % 60);
         int hour = (int)((timeLongType/ (60*60000)) % 24);
+
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(Long.parseLong(date));
         calendar.add(Calendar.MINUTE, minute);
         calendar.add(Calendar.HOUR_OF_DAY, hour);
-        Log.d(LOGTAG, calendar.get(Calendar.DAY_OF_MONTH) + "-" + calendar.get(Calendar.MONTH) +
-                "-" + calendar.get(Calendar.YEAR));
-        Log.d(LOGTAG, calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE));
 
-        alarm(intent, calendar.getTime().getTime(), idIntType);
+        alarm(intent, calendar.getTime().getTime(), idIntType, isRepeater);
     }
 
-    private void alarm(Intent intent, long setTime, int requestCode) {
+    private void alarm(Intent intent, long setTime, int requestCode, boolean isRepeater) {
+        Log.d("Pin", "alarm method");
 
         PendingIntent pi = PendingIntent.getBroadcast(getActivity(), requestCode, intent, 0);
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(setTime);
 
         AlarmManager am = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
-        am.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
+        if(isRepeater){
+            Log.d("Pin", "repeater");
+            am.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
+        }else{
+            am.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
+        }
     }
     private void cancelAlarmAndNotification(Intent intent , int requestCode, String fileName){
         Log.d("Pin", "cancelAlarmAndNotification");
@@ -530,7 +535,7 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
 
         if (isAllDayType) {
             final Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.DAY_OF_YEAR, 1);
+            calendar.add(Calendar.DAY_OF_YEAR, 0);/////////////////////////////////////////
             long toDate = calendar.getTimeInMillis();
             if (!TextUtils.isEmpty(fromDate)) {
                 toDate = Long.parseLong(pref.getString(
@@ -602,13 +607,16 @@ public class BookDetailFragment extends Fragment implements LoaderManager.Loader
                         String toDate = tvToDate.getText().toString();
                         toDate = String.valueOf(dateFormat.parse(toDate).getTime());
                         saveStateSwitch(fileName, getString(R.string.PREFS_ALARM_TO_DATE), toDate);
+                        Log.d("Pin", "toDate tv: " + toDate);
                     }
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
 
                 popup.dismiss();
+                Log.d("Pin", "switchType2: " + switchType);
                 setCheckForSwitch(sc, switchType, fileName);
+                activeNotification(fileName);
             }
         });
     }
