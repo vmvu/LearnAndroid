@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "C:\\Users\\vomin\\AndroidStudioProjects\\database\\app\\build\\intermediates\\res\\merged\\debug\\mipmap-xxxhdpi\\ic_launcher.png",
+        "source": "C:\\Users\\vomin\\AndroidStudioProjects\\database\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\vomin\\AndroidStudioProjects\\database\\app\\build\\intermediates\\res\\merged\\debug\\mipmap-xxxhdpi\\paris.png",
+        "source": "C:\\Users\\vomin\\AndroidStudioProjects\\database\\app\\src\\main\\res\\mipmap-xxxhdpi\\paris.png"
+    },
+    {
+        "merged": "C:\\Users\\vomin\\AndroidStudioProjects\\database\\app\\build\\intermediates\\res\\merged\\debug\\mipmap-xxxhdpi\\ic_launcher_round.png",
+        "source": "C:\\Users\\vomin\\AndroidStudioProjects\\database\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_launcher_round.png"
+    },
+    {
+        "merged": "C:\\Users\\vomin\\AndroidStudioProjects\\database\\app\\build\\intermediates\\res\\merged\\debug\\mipmap-xxxhdpi\\ic_launcher_check.png",
+        "source": "C:\\Users\\vomin\\AndroidStudioProjects\\database\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_launcher_check.png"
+    }
+]
