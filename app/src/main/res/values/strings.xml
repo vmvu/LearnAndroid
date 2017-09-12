@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Notepad</string>
-
+    <string name="detail_label">Detail</string>
     <string name="insert_menu">Insert now</string>
     <string name="Loading_menu">Loading !</string>
     <string name="setting_menu">Setting</string>
@@ -9,6 +9,8 @@
     <string name="content_authority">com.minhvu.proandroid.sqlite.database</string>
     <string name="popup_delete">Delete</string>
     <string name="youtube_host">https://www.youtube.com</string>
+
+    <string name="note_uri">note_uri</string>
 
     <string name="notify_note_uri">note_uri</string>
     <string name="notify_note_title">title_note_pin</string>
@@ -26,5 +28,14 @@
     <string name="PREFS_ALARM_FROM_DATE">alarm_from_date</string>
     <string name="PREFS_ALARM_TO_DATE">alarm_to_date</string>
     <string name="PREFS_ALARM_WHEN">alarm_when</string>
+
+    <string name="type_of_switch_pin">scPin</string>
+    <string name="type_of_switch_15min">sc15Min</string>
+    <string name="type_of_switch_30min">sc30Min</string>
+    <string name="type_of_switch_at_time">scAtTime</string>
+    <string name="type_of_switch_repeater">scRepeater</string>
+    <string name="type_of_switch_reset">scReset</string>
+
+
 
 </resources>

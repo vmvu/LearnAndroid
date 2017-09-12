@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 
 import com.minhvu.proandroid.sqlite.database.main.view.Fragment.BookDetailFragment;
 import com.minhvu.proandroid.sqlite.database.R;
@@ -21,18 +22,18 @@ public class BookDetailActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
         Intent intent = getIntent();
-        Uri mCurrentBookUri = null;
-        if (intent != null) {
-            mCurrentBookUri = intent.getData();
+        Bundle bundle = null;
+        if (intent.getData() != null) {
+            bundle = new Bundle();
+            bundle.putString(getString(R.string.note_uri),intent.getData().toString());
         }
-
         BookDetailFragment bookDetailFragment;
         FragmentManager fManager = getSupportFragmentManager();
         bookDetailFragment = (BookDetailFragment) fManager.findFragmentByTag(BookDetailFragment.class.getSimpleName());
         if (bookDetailFragment == null) {
             bookDetailFragment = new BookDetailFragment();
         }
-        bookDetailFragment.setCurrentBookUri(mCurrentBookUri);
+        bookDetailFragment.setArguments(bundle);
         FragmentTransaction transaction = fManager.beginTransaction();
         transaction.replace(R.id.fragment_content, bookDetailFragment, BookDetailFragment.class.getSimpleName());
         transaction.commit();
@@ -43,5 +44,8 @@ public class BookDetailActivity extends FragmentActivity {
         super.onSaveInstanceState(outState);
     }
 
-
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
 }

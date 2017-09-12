@@ -17,25 +17,25 @@ import java.util.List;
  * Created by vomin on 8/4/2017.
  */
 
-public class BookDBHelper extends SQLiteOpenHelper {
-    private static final String LOGTAG = "BookDBHelper";
+public class NoteDBHelper extends SQLiteOpenHelper {
+    private static final String LOGTAG = "NoteDBHelper";
     private static final String DATABASE_NAME = "v_notepad";
     private static final String PATH = "/data/data/com.minhvu.proandroid.sqlite.database/databases/";
     private static final String SQL_FILE_NAME = "v_notepad.db.sql";
     private static int DATABASE_VERSION = 1;
     private Context ctx ;
 
-    private static volatile BookDBHelper mHelper = null;
+    private static volatile NoteDBHelper mHelper = null;
 
-    public static synchronized BookDBHelper getInstance(Context context){
+    public static synchronized NoteDBHelper getInstance(Context context){
         if(mHelper == null){
-            mHelper = new BookDBHelper(context);
+            mHelper = new NoteDBHelper(context);
         }
         return mHelper;
     }
 
 
-    private BookDBHelper(Context context) {
+    private NoteDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.ctx = context;
     }
@@ -57,7 +57,7 @@ public class BookDBHelper extends SQLiteOpenHelper {
     private boolean checkDatabase(){
         SQLiteDatabase check = null;
         try{
-            String myPath = BookDBHelper.PATH + BookDBHelper.DATABASE_NAME;
+            String myPath = NoteDBHelper.PATH + NoteDBHelper.DATABASE_NAME;
             check = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
         }catch (SQLiteException e){
 

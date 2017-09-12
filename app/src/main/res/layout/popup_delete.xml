@@ -26,15 +26,15 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:paddingLeft="20dp"
-            android:src="@drawable/ic_close_black_24dp" />
+            android:layout_marginRight="20dp"
+            style="@style/btnNoStyle" />
 
         <ImageButton
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:paddingRight="20dp"
-            android:src="@drawable/ic_check_black_24dp" />
+            android:layout_marginLeft="20dp"
+           style="@style/btnYesStyle" />
 
     </LinearLayout>
 

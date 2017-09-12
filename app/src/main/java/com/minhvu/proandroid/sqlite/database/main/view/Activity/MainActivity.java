@@ -1,5 +1,7 @@
 package com.minhvu.proandroid.sqlite.database.main.view.Activity;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -15,10 +17,12 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -26,6 +30,11 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
@@ -33,18 +42,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.minhvu.proandroid.sqlite.database.R;
-import com.minhvu.proandroid.sqlite.database.main.view.Adapter.Adapterl;
+import com.minhvu.proandroid.sqlite.database.Utils.DesEncrypter;
+import com.minhvu.proandroid.sqlite.database.main.view.Adapter.NoteAdapter;
 import com.minhvu.proandroid.sqlite.database.models.data.NoteContract;
+import com.minhvu.proandroid.sqlite.database.models.entity.Note;
 
 public class MainActivity extends AppCompatActivity
-        implements Adapterl.IBookAdapterOnClickHandler, LoaderManager.LoaderCallbacks<Cursor> {
+        implements NoteAdapter.IBookAdapterOnClickHandler, LoaderManager.LoaderCallbacks<Cursor> {
     private static final String LOGTAG = "MainActivity";
 
-    private Adapterl bookAdapterl;
+    private NoteAdapter bookNoteAdapter;
     private final int ID_BOOK_LOADER = 101;
 
     private FloatingActionButton fab;
-    private ListView lv;
     private RecyclerView recyclerView;
     private int mPosition = RecyclerView.NO_POSITION;
 
@@ -58,6 +68,7 @@ public class MainActivity extends AppCompatActivity
         setupInitialize();
 
         getSupportLoaderManager().initLoader(ID_BOOK_LOADER, null, this);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
     }
 
     @Override
@@ -68,19 +79,71 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onClick(int bookID) {
+    public void onClick(final Note note, final int itemPosition) {
+        if (!TextUtils.isEmpty(note.getPassword())) {
+
+            LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+            LinearLayout viewGroup = (LinearLayout) this.findViewById(R.id.popupViewGroup);
+            View dialogLayout = inflater.inflate(R.layout.popup_password_set, viewGroup);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setView(dialogLayout);
+            final AlertDialog dialog = builder.create();
+            final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            final EditText editText = (EditText) dialogLayout.findViewById(R.id.etPassWord);
+            editText.setFocusable(true);
+            ImageButton imgBtnNo = (ImageButton) dialogLayout.findViewById(R.id.btnNo);
+            ImageButton imgBtnYes = (ImageButton) dialogLayout.findViewById(R.id.btnYes);
+            imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
+
+            imgBtnYes.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String password = editText.getText().toString();
+                    if (TextUtils.isEmpty(password)) {
+                        return;
+                    }
+                    DesEncrypter decrypt = new DesEncrypter();
+                    String pas = decrypt.decrypt(note.getPassword(), note.getPassSalt());
+                    if (pas.equals(password)) {
+                        dialog.dismiss();
+                        Uri uri = ContentUris.withAppendedId(NoteContract.NoteEntry.CONTENT_URI, note.getId());
+                        openDetailActivity(uri, itemPosition);
+                    } else {
+                        editText.setText("");
+                    }
+
+                }
+            });
+            imgBtnNo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+                    dialog.dismiss();
+                }
+            });
+            showDialog(dialog);
+        } else {
+            Uri uri = ContentUris.withAppendedId(NoteContract.NoteEntry.CONTENT_URI, note.getId());
+            openDetailActivity(uri, itemPosition);
+        }
+    }
+
+    public void openDetailActivity(Uri uri, int itemPosition) {
         Intent intent = new Intent(this, BookDetailActivity.class);
-        intent.setData(ContentUris.withAppendedId(NoteContract.NoteEntry.CONTENT_URI, bookID));
-        startActivity(intent);
+        intent.setData(uri);
+        startActivityForResult(intent, itemPosition);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
-    public void onLongClick(View view, int bookID, String title, int pin) {
+    public void onLongClick(View view, Note note) {
         Toast.makeText(this, "onLongClick:", Toast.LENGTH_SHORT).show();
-        Uri uri = ContentUris.withAppendedId(NoteContract.NoteEntry.CONTENT_URI, bookID);
-        showPopup(view, this, uri, title, pin);
+        showPopup(note);
+    }
 
+    private void showDialog(AlertDialog dialog) {
+        dialog.show();
     }
 
     @Override
@@ -91,10 +154,10 @@ public class MainActivity extends AppCompatActivity
 
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    private void showPopup(View view, Context context, final Uri uri, String popupTile, final int pin) {
-
+    private void showPopup(final Note note) {
+        final Uri uri = ContentUris.withAppendedId(NoteContract.NoteEntry.CONTENT_URI, note.getId());
         int popupWidth = 600;
-        int popupHeigh = 400;
+        int popupHeight = 400;
 
         LinearLayout viewGroup = (LinearLayout) this.findViewById(R.id.popupViewGroup);
 
@@ -104,21 +167,21 @@ public class MainActivity extends AppCompatActivity
         final PopupWindow popupWindow = new PopupWindow(this);
         popupWindow.setContentView(layout);
         popupWindow.setWidth(popupWidth);
-        popupWindow.setHeight(popupHeigh);
+        popupWindow.setHeight(popupHeight);
         popupWindow.setFocusable(true);
         // clear the default translucent background
         popupWindow.setBackgroundDrawable(new BitmapDrawable());
-        getPositionPopupDisplay(popupWidth, popupHeigh);
+        getPositionPopupDisplay(popupWidth, popupHeight);
         Log.d(LOGTAG, "width2 = " + point.x + " height2 = " + point.y);
         popupWindow.showAtLocation(layout, Gravity.NO_GRAVITY, point.x, point.y);
         TextView tvTitlePopup = (TextView) layout.findViewById(R.id.tvTitle_Popup);
-        tvTitlePopup.setText(popupTile);
+        tvTitlePopup.setText(note.getTitle());
         TextView tvDeleltePopup = (TextView) layout.findViewById(R.id.tvDelete_popup);
         tvDeleltePopup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 deleteBook(uri);
-                cancelNotification(uri, pin);
+                cancelNotification((int) note.getId());
                 popupWindow.dismiss();
             }
         });
@@ -144,14 +207,18 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(this, "Delete successful", Toast.LENGTH_SHORT).show();
         }
     }
-    private void cancelNotification(Uri uri, int pin){
-        if(pin != 1)
+
+    private void cancelNotification(int noteID) {
+        if (noteID == -1)
             return;
         String action_broadcast = getString(R.string.broadcast_receiver_pin);
         Intent intent = new Intent(action_broadcast);
-        intent.putExtra(getString(R.string.notify_note_uri), uri.toString());
-        intent.putExtra(getString(R.string.notify_note_remove), true);
-        sendBroadcast(intent);
+        PendingIntent pi = PendingIntent.getBroadcast(this, noteID, intent, 0);
+        if (pi != null) {
+            NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            nm.cancel(noteID);
+        }
+
     }
 
 
@@ -168,10 +235,10 @@ public class MainActivity extends AppCompatActivity
 
 
         //recyclerView.setAdapter(bookAdapter);
-        bookAdapterl = new Adapterl(this, this);
-        bookAdapterl.onRecyclerViewAttached(recyclerView);
+        bookNoteAdapter = new NoteAdapter(this, this);
+        bookNoteAdapter.onRecyclerViewAttached(recyclerView);
 
-        recyclerView.setAdapter(bookAdapterl);
+        recyclerView.setAdapter(bookNoteAdapter);
 
         fab = (FloatingActionButton) findViewById(R.id.fabInsert);
 
@@ -184,27 +251,26 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         if (id != ID_BOOK_LOADER)
             return null;
+        Log.d("Loaf", "onCreateLoader");
         Uri uri = NoteContract.NoteEntry.CONTENT_URI;
-        return new CursorLoader(this, uri, NoteContract.NoteEntry.getColumnNames(), null, null, null);
+        String selection = NoteContract.NoteEntry.COL_DELETE + "=?";
+        String[] selectionArgs = new String[]{"0"};
+        return new CursorLoader(this, uri, NoteContract.NoteEntry.getColumnNames(), selection, selectionArgs, null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-        Log.d(LOGTAG, "onLoadFinished: " + data.getCount());
-        int count = data.getCount();
-        bookAdapterl.swapData(data);
-        if (mPosition == RecyclerView.NO_POSITION) mPosition = 0;
-        recyclerView.smoothScrollToPosition(mPosition);
-
+        Log.d("Loaf", "onLoadFinished: " + data.getCount());
+        bookNoteAdapter.swapData(data);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        bookAdapterl.swapData(null);
+        bookNoteAdapter.swapData(null);
     }
 }

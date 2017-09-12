@@ -25,10 +25,11 @@ public class ColorAdapter extends RecyclerView.Adapter<ColorAdapter.ViewHolder> 
     public ColorAdapter(Context context, IColorAdapter iColorAdapter) {
         this.context = context;
         this.iColorAdapter = iColorAdapter;
+        mColorData.addAll(Color.getColors(context));
     }
 
     public interface IColorAdapter {
-        void onClick(Color color);
+        void onClick(int colorPos);
     }
 
     @Override
@@ -47,19 +48,12 @@ public class ColorAdapter extends RecyclerView.Adapter<ColorAdapter.ViewHolder> 
 
     @Override
     public int getItemCount() {
-        return mColorData == null || mColorData.size() == 0 ? 0 : mColorData.size();
+        return mColorData.size();
     }
-
-    public void swapData(List<Color> colors) {
-        this.mColorData.clear();
-        this.mColorData.addAll(colors);
-        this.notifyDataSetChanged();
-    }
-
     class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView tv;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             super(itemView);
             tv = (TextView) itemView.findViewById(R.id.tvColorItem);
             itemView.setOnClickListener(this);
@@ -67,8 +61,7 @@ public class ColorAdapter extends RecyclerView.Adapter<ColorAdapter.ViewHolder> 
 
         @Override
         public void onClick(View v) {
-            Color color = mColorData.get(getAdapterPosition());
-            iColorAdapter.onClick(color);
+            iColorAdapter.onClick(getAdapterPosition());
         }
     }
 }

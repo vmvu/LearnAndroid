@@ -3,6 +3,7 @@ package com.minhvu.proandroid.sqlite.database.Utils;
 import android.icu.text.SimpleDateFormat;
 
 import java.sql.Date;
+import java.text.ParseException;
 
 /**
  * Created by vomin on 8/25/2017.
@@ -13,5 +14,15 @@ public class DateTimeUtils {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         return dateFormat.format(timeMillis);
     }
+
+    public static long stringToLongDate(String timeString) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        try{
+            return dateFormat.parse(timeString).getTime();
+        }catch (ParseException e){
+            return 0;
+        }
+    }
+
 
 }

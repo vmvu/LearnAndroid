@@ -12,8 +12,10 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.minhvu.proandroid.sqlite.database.MyApplication;
+import com.minhvu.proandroid.sqlite.database.models.entity.Note;
 
 import java.util.HashMap;
 
@@ -21,7 +23,7 @@ import java.util.HashMap;
  * Created by vomin on 8/1/2017.
  */
 
-public class BookProvider extends ContentProvider {
+public class NoteProvider extends ContentProvider {
     //tnote table
     public static final int INCOMING_NOTE_COLLECTION_URI_INDICATOR = 1;
     public static final int INCOMING_SINGLE_NOTE_URI_INDICATOR = 100;
@@ -30,8 +32,11 @@ public class BookProvider extends ContentProvider {
     public  static final int INCOMING_SINGLE_TYPEOFTEXT_URI_INDICATOR = 98;
     //taccount table
     public static final int INCOMING_ACCOUNT_COLLECTION_URI_INDICATOR = 4;
+    //v_images
+    public static final int INCOMING_IMAGES_COLLECTION_URI_INDICATOR = 5;
+    public static final int INCOMING_SINGLE_IMAGES_URI_INDICATOR = 97;
 
-    private BookDBHelper mOpenHelper = null;
+    private NoteDBHelper mOpenHelper = null;
 
     private static UriMatcher uriMatcher = null;
     static {
@@ -48,9 +53,15 @@ public class BookProvider extends ContentProvider {
 
         uriMatcher.addURI(NoteContract.AUTHORITY, NoteContract.path_account,
                 INCOMING_ACCOUNT_COLLECTION_URI_INDICATOR);
+
+        uriMatcher.addURI(NoteContract.AUTHORITY, NoteContract.path_images,
+                INCOMING_IMAGES_COLLECTION_URI_INDICATOR);
+        uriMatcher.addURI(NoteContract.AUTHORITY, NoteContract.path_images + "/*",
+                INCOMING_SINGLE_IMAGES_URI_INDICATOR);
     }
     private static HashMap<String, String> sNoteProjectMap;
     private static HashMap<String, String> sTypeOfTextProjectMap;
+    private static HashMap<String, String> sImagesProjectMap;
     static{
         sNoteProjectMap = new HashMap<>();
         sNoteProjectMap.put(NoteContract.NoteEntry._ID, NoteContract.NoteEntry._ID);
@@ -69,10 +80,14 @@ public class BookProvider extends ContentProvider {
         sTypeOfTextProjectMap.put(NoteContract.TypeOfTextEntry._ID, NoteContract.TypeOfTextEntry._ID);
         sTypeOfTextProjectMap.put(NoteContract.TypeOfTextEntry.COL_NAME, NoteContract.TypeOfTextEntry.COL_NAME);
 
+        sImagesProjectMap = new HashMap<>();
+        sImagesProjectMap.put(NoteContract.ImageEntry.COL_NAME_PATH,NoteContract.ImageEntry.COL_NAME_PATH );
+        sImagesProjectMap.put(NoteContract.ImageEntry.COL_NOTE_ID,NoteContract.ImageEntry.COL_NOTE_ID);
+
     }
     @Override
     public boolean onCreate() {
-        mOpenHelper = BookDBHelper.getInstance(getContext());
+        mOpenHelper = NoteDBHelper.getInstance(getContext());
         return true;
     }
 
@@ -103,6 +118,18 @@ public class BookProvider extends ContentProvider {
                 qb.setTables(NoteContract.TypeOfTextEntry.DATABASE_TABLE);
                 qb.setProjectionMap(sTypeOfTextProjectMap);
                 qb.appendWhere(NoteContract.TypeOfTextEntry._ID + "=" + uri.getPathSegments().get(1));
+                break;
+            case INCOMING_IMAGES_COLLECTION_URI_INDICATOR:
+                qb.setTables(NoteContract.ImageEntry.DATABASE_TABLE);
+                qb.setProjectionMap(sImagesProjectMap);
+                qb.appendWhere(selection);
+                orderBy = null;
+                break;
+            case INCOMING_SINGLE_IMAGES_URI_INDICATOR:
+                qb.setTables(NoteContract.ImageEntry.DATABASE_TABLE);
+                qb.setProjectionMap(sImagesProjectMap);
+                qb.appendWhere(selection);
+                orderBy = null;
                 break;
             case  INCOMING_ACCOUNT_COLLECTION_URI_INDICATOR:
                 qb.setTables(NoteContract.AccountEntry.DATABASE_TABLE);
@@ -140,9 +167,19 @@ public class BookProvider extends ContentProvider {
                 Uri insertUri = ContentUris.withAppendedId(NoteContract.NoteEntry.CONTENT_URI, rowSuccess);
                 getContext().getContentResolver().notifyChange(insertUri, null);
                 return insertUri;
+            case INCOMING_IMAGES_COLLECTION_URI_INDICATOR:
+                SQLiteDatabase dbImage = mOpenHelper.getWritableDatabase();
+                long s = dbImage.insert(NoteContract.ImageEntry.DATABASE_TABLE, null, cv);
+                if(s < 0){
+                    return  null;
+                }
+                Uri imageUri = Uri.withAppendedPath(NoteContract.ImageEntry.CONTENT_URI,
+                        cv.getAsString(NoteContract.ImageEntry.COL_NAME_PATH));
+                getContext().getContentResolver().notifyChange(imageUri, null);
+                return imageUri;
 
             case INCOMING_ACCOUNT_COLLECTION_URI_INDICATOR:
-                if(cv.containsKey(NoteContract.AccountEntry.COL_ID) == false){
+                if(!cv.containsKey(NoteContract.AccountEntry.COL_ID)){
                     return null;
                 }
                 SQLiteDatabase database = mOpenHelper.getWritableDatabase();
@@ -174,6 +211,14 @@ public class BookProvider extends ContentProvider {
                         + (!TextUtils.isEmpty(selection) ? "AND (" + selection + ")" : "");
                 DBName = NoteContract.NoteEntry.DATABASE_TABLE;
                 break;
+            case INCOMING_IMAGES_COLLECTION_URI_INDICATOR:
+                where = selection;
+                DBName = NoteContract.ImageEntry.DATABASE_TABLE;
+                break;
+            case INCOMING_SINGLE_IMAGES_URI_INDICATOR:
+                where = selection;
+                DBName = NoteContract.ImageEntry.DATABASE_TABLE;
+                break;
             case INCOMING_ACCOUNT_COLLECTION_URI_INDICATOR:
                 where = selection;
                 DBName = NoteContract.AccountEntry.DATABASE_TABLE;
@@ -199,9 +244,10 @@ public class BookProvider extends ContentProvider {
                 DBName = NoteContract.NoteEntry.DATABASE_TABLE;
                 break;
             case  INCOMING_SINGLE_NOTE_URI_INDICATOR:
+                Log.d("Password", "vao day");
                 String rowID = uri.getPathSegments().get(1);
-                where = NoteContract.NoteEntry._ID + "=" + rowID
-                        + (!TextUtils.isEmpty(selection) ? "AND (" + selection + ")" : "");
+                where = NoteContract.NoteEntry._ID + "=?";
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
                 DBName = NoteContract.NoteEntry.DATABASE_TABLE;
                 break;
             case INCOMING_ACCOUNT_COLLECTION_URI_INDICATOR:
@@ -211,8 +257,11 @@ public class BookProvider extends ContentProvider {
             default:
                 return 0;
         }
+        Log.d("Loaf", "where:" + where);
+        Log.d("Loaf", "where Uri:" + uri.toString());
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         int updates = db.update(DBName, values, where, selectionArgs);
+        Log.d("Loaf", "updates:" + updates);
         if(updates > 0){
             getContext().getContentResolver().notifyChange(uri, null);
         }

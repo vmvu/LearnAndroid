@@ -3,6 +3,7 @@ package com.minhvu.proandroid.sqlite.database.models.entity;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.minhvu.proandroid.sqlite.database.models.data.NoteContract.NoteEntry;
 
@@ -27,15 +28,15 @@ public class Note {
     public ContentValues getValues(){
         ContentValues cv = new ContentValues();
         if(id != -1) cv.put(NoteEntry._ID, id);
-        cv.put(NoteEntry.COL_TITLE, getTitle());
-        cv.put(NoteEntry.COL_CONTENT, getContent());
+        if(!TextUtils.isEmpty(getTitle())) cv.put(NoteEntry.COL_TITLE, getTitle());
+        if(!TextUtils.isEmpty(getContent())) cv.put(NoteEntry.COL_CONTENT, getContent());
         if(date_created > 0)
             cv.put(NoteEntry.COL_DATE_CREATED, String.valueOf(getDateCreated()));
         cv.put(NoteEntry.COL_LAST_ON, String.valueOf(getLastOn()));
         if(!TextUtils.isEmpty(getPassword())){
-            cv.put(NoteEntry.COL_PASSWORD, getPassword());
             if( !TextUtils.isEmpty(getPassSalt())){
                 cv.put(NoteEntry.COL_PASSWORD_SALT, getPassSalt());
+                cv.put(NoteEntry.COL_PASSWORD, getPassword());
             }
         }
         cv.put(NoteEntry.COL_COLOR, getIdColor());
@@ -134,5 +135,19 @@ public class Note {
 
     public void setDelete(boolean delete) {
         this.delete = delete;
+    }
+
+    @Override
+    public String toString() {
+
+        Log.d("Note string", "id" + id);
+        Log.d("Note string", "title:" + title);
+        Log.d("Note string", "content:" + content);
+        Log.d("Note string", "color:" + id_color);
+        Log.d("Note string", "password:" + password);
+        Log.d("Note string", "salt:" + pass_salt);
+        Log.d("Note string", "delete:" + delete);
+        Log.d("Note string", "-----------------");
+       return super.toString();
     }
 }

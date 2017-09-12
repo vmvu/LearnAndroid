@@ -16,8 +16,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.minhvu.proandroid.sqlite.database.main.view.Activity.PopupActivity;
 import com.minhvu.proandroid.sqlite.database.R;
+import com.minhvu.proandroid.sqlite.database.main.view.Activity.GetShareActivity;
+import com.minhvu.proandroid.sqlite.database.main.view.Activity.GetShareView;
 
 import java.text.ParseException;
 
@@ -67,14 +68,18 @@ public class PinBroadcast extends BroadcastReceiver {
     }
 
     private void convertToSCResetState(Context context, String id) {
-        SharedPreferences pref = context.getSharedPreferences(context.getString(R.string.PREFS_ALARM_FILE), Context.MODE_PRIVATE);
+        SharedPreferences pref = context
+                .getSharedPreferences(context.getString(R.string.PREFS_ALARM_FILE), Context.MODE_PRIVATE);
         String switchType = pref.getString(context.getString(R.string.PREFS_ALARM_SWITCH_KEY) + id, "");
         if (TextUtils.isEmpty(switchType)) {
             return;
         }
-        if (switchType.equals("sc15Min") || switchType.equals("sc30Min") || switchType.equals("scWhen")) {
+        if (switchType.equals(context.getString(R.string.type_of_switch_15min)) ||
+                switchType.equals(context.getString(R.string.type_of_switch_30min)) ||
+                switchType.equals(context.getString(R.string.type_of_switch_at_time))) {
             SharedPreferences.Editor editor = pref.edit();
-            editor.putString(context.getString(R.string.PREFS_ALARM_SWITCH_KEY) + id, "scReset");
+            editor.putString(
+                    context.getString(R.string.PREFS_ALARM_SWITCH_KEY) + id, context.getString(R.string.type_of_switch_reset));
             editor.apply();
         }
     }
@@ -89,7 +94,7 @@ public class PinBroadcast extends BroadcastReceiver {
         Bitmap icon = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.ic_search_black_24dp);
         Log.d("Pin", "title: " + title + "|| content:" + content);
         int id = Integer.parseInt(uri.getPathSegments().get(1).trim());
-        Intent i = new Intent(ctx, PopupActivity.class);
+        Intent i = new Intent(ctx, GetShareActivity.class);
         i.setData(uri);
         PendingIntent pendingIntent = PendingIntent.getActivity(ctx, id, i, 0);
 

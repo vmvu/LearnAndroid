@@ -11,12 +11,17 @@ CREATE TABLE IF NOT EXISTS `v_note` (
 	`content`	TEXT,
 	`date_created`	TEXT,
 	`last_on`	TEXT,
-	`password`	TEXT,
-	`pass_salt`	TEXT,
+	`pass`	TEXT,
+	`pass_key`	TEXT,
 	`id_color`	INTEGER,
 	`id_typeoftext`	INTEGER,
 	`account`	TEXT,
 	`isdelete`	INTEGER DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS `v_images` (
+	`name_path`	TEXT,
+	`note_id`	INTEGER,
+	PRIMARY KEY(`name_path`)
 );
 CREATE TABLE IF NOT EXISTS `v_account` (
 	`id_account`	TEXT,

@@ -4,26 +4,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp"
+    android:background="@drawable/rectangle">
+
     <View
-        android:id="@+id/viewBG"
-        android:layout_width="10dp"
+        android:id="@+id/lineNote"
+        android:layout_width="5dp"
         android:layout_height="match_parent"
         android:background="#000"
-        android:layout_marginTop="3dp"
-        android:layout_marginBottom="3dp"></View>
-
-
-    <android.support.v7.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="5dp"
-        app:cardUseCompatPadding="true"
-        app:theme="@style/Base.CardView"
-        >
+        ></View>
 
         <RelativeLayout
-            android:id="@+id/viewGroupBG"
+            android:id="@+id/bgNote"
             android:layout_width="match_parent"
             android:layout_height="100dp"
             tools:background="@color/backgroundColor_default">
@@ -33,7 +27,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                >
 
                 <TextView
                     android:id="@+id/tvTitle"
@@ -45,19 +40,28 @@
                     android:maxLines="1"
                     android:textColor="#00218f"
                     android:textStyle="bold"
-                    tools:text="Pro android 5" />
+                    android:paddingLeft="5dp"
+                    android:paddingTop="5dp"
+                    tools:text="pro android 5" />
 
                 <ImageView
-                    android:id="@+id/imgViewPinTag"
+                    android:id="@+id/ivPinStarIcon"
                     android:layout_width="25dp"
                     android:layout_height="25dp"
                     android:layout_toRightOf="@id/tvTitle"
-                    android:src="@drawable/ic_star_black_24dp" />
+                    android:src="@drawable/ic_shit" />
+
+                <ImageView
+                    android:id="@+id/ivLockIcon"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_toRightOf="@id/ivPinStarIcon"
+                    android:src="@drawable/ic_https_black_24dp" />
 
             </LinearLayout>
 
             <TextView
-                android:id="@+id/tvContent2"
+                android:id="@+id/tvContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/viewTop"
@@ -74,19 +78,13 @@
                 android:paddingTop="5dp">
 
                 <TextView
-                    android:id="@+id/tvCreation_On"
+                    android:id="@+id/tvDateCreated"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="20dp"
                     android:textSize="10dp"
-
                     tools:text="20-7-2017 10:20" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="last    "
-                    android:textSize="6dp" />
 
                 <TextView
                     android:id="@+id/tvLastUpdate"
@@ -94,9 +92,6 @@
                     android:layout_height="wrap_content"
                     android:textSize="10dp"
                     tools:text="1-8-2017 9:00" />
-
             </LinearLayout>
-
         </RelativeLayout>
-    </android.support.v7.widget.CardView>
 </LinearLayout>

@@ -1,6 +1,7 @@
 package com.minhvu.proandroid.sqlite.database.models.entity;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.minhvu.proandroid.sqlite.database.R;
 
@@ -50,6 +51,7 @@ public class Color {
         int[] headerColors = ctx.getResources().getIntArray(R.array.header_color);
         int[] backgroundColors = ctx.getResources().getIntArray(R.array.background_color);
         Color color = new Color();
+        Log.d("color pos", pos + "");
         color.setHeaderColor(headerColors[pos]);
         color.setBackgroundColor(backgroundColors[pos]);
         return color;
