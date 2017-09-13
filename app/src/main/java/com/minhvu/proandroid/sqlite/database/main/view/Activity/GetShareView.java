@@ -1,5 +1,6 @@
 package com.minhvu.proandroid.sqlite.database.main.view.Activity;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -19,6 +20,8 @@ public interface  GetShareView {
     void updateView(String title, String content);
     void finishThis();
     void showToast(Toast toast);
+    void showDialog(Dialog dialog);
     void updateImageCount(int count);
+    void lockContent();
 
 }

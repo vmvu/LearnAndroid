@@ -10,28 +10,20 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
-import android.icu.text.SimpleDateFormat;
 import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Environment;
-import android.provider.MediaStore;
+import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.SwitchCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -44,13 +36,7 @@ import com.minhvu.proandroid.sqlite.database.main.view.Fragment.IDetailShow;
 import com.minhvu.proandroid.sqlite.database.models.data.NoteContract;
 import com.minhvu.proandroid.sqlite.database.models.entity.Note;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Calendar;
-import java.util.Date;
 
 /**
  * Created by vomin on 8/24/2017.
@@ -108,16 +94,6 @@ public class DetailPresenter extends MvpPresenter<IDetailModel, IDetailShow> imp
         return popup;
     }
 
-    private PopupWindow popupAtParentPosition(View parentView, View layout, int popWidth, int popHeight) {
-
-        int[] localView = new int[2];
-        parentView.getLocationOnScreen(localView);
-        Log.d(LOGTAG, "width:" + localView[0] + " height:" + localView[1]);
-        int x = localView[0] - popWidth;
-        int y = localView[1] - popHeight / 2;
-
-        return popupConfiguration(layout, popWidth, popHeight, x, y, Gravity.NO_GRAVITY);
-    }
 
     @Override
     public void showTableSetting(View layout, View parent) {
@@ -165,7 +141,6 @@ public class DetailPresenter extends MvpPresenter<IDetailModel, IDetailShow> imp
                 ContentValues cv = noteBase(title, content, color);
                 cv.put(NoteContract.NoteEntry.COL_DELETE, "1");
                 boolean isDeleted = model.update(mCurrentUri, cv, null, null);
-                Log.d("Delete1", "" + isDeleted);
                 if (isDeleted) {
                     getView().finishIfSelf();
                 }
@@ -186,11 +161,6 @@ public class DetailPresenter extends MvpPresenter<IDetailModel, IDetailShow> imp
         saveNoteInternal(title, content, color, 1);
     }
 
-    private LayoutInflater getLayoutInflater() {
-        LayoutInflater inflater =
-                (LayoutInflater) getActivityContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        return inflater;
-    }
 
     private ContentValues noteBase(EditText etTitle, EditText etContent, View btColor) {
         Log.d("Pin", "index:" + btColor.getTag());
@@ -297,7 +267,7 @@ public class DetailPresenter extends MvpPresenter<IDetailModel, IDetailShow> imp
         Note note = new Note();
         note.setTitle(title.getText().toString() + "");
         note.setContent(content.getText().toString() + "");
-        note.setIdColor((int)color.getTag());
+        note.setIdColor((int) color.getTag());
         note.setIdTypeOfText(typeOfText);
         note.setLastOn(System.currentTimeMillis());
         if (mCurrentUri == null) {
@@ -310,12 +280,11 @@ public class DetailPresenter extends MvpPresenter<IDetailModel, IDetailShow> imp
 
     @Override
     public void onPause(EditText title, EditText content, ImageButton color, int typeOfText, boolean isCheck) {
-        Log.d("Pin", "colorPos3:" + color.getTag());
-        printLog(title, content, color, typeOfText);
-        if (!this.mHasChange && isCheck) {
+        //printLog(title, content, color, typeOfText);
+        if (!this.mHasChange) {
             return;
         }
-        if (isCheck && mCurrentUri == null && TextUtils.isEmpty(title.getText().toString()) && TextUtils.isEmpty(content.getText().toString())) {
+        if (isCheck && TextUtils.isEmpty(title.getText().toString()) && TextUtils.isEmpty(content.getText().toString())) {
             return;
         }
         saveNoteInternal(title, content, color, typeOfText);
@@ -337,23 +306,14 @@ public class DetailPresenter extends MvpPresenter<IDetailModel, IDetailShow> imp
         if (mCurrentUri == null) {
             return;
         }
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            protected Boolean doInBackground(Void... params) {
-                return model.update(mCurrentUri, note.getValues(), null, null);
-            }
-
-            @Override
-            protected void onPostExecute(Boolean success) {
-                if (success) {
-                    getView().showToast(
-                            Toast.makeText(getView().getActivityContext(), "save data", Toast.LENGTH_SHORT)
-                    );
-                }
-            }
-        }.execute();
+        boolean success = model.update(mCurrentUri, note.getValues(), null, null);
+        if (success) {
+            getView().showToast(
+                    Toast.makeText(getView().getActivityContext(), "save data", Toast.LENGTH_SHORT)
+            );
+        }
     }
+
 
     @Nullable
     private Note queryNote(Uri uri, String[] projection, String where, String[] whereArgs) {
@@ -450,8 +410,13 @@ public class DetailPresenter extends MvpPresenter<IDetailModel, IDetailShow> imp
         if (isRepeater) {
             Log.d("Pin", "repeater");
             am.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
+
         } else {
-            am.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                am.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
+            } else am.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
         }
     }
 

@@ -2,7 +2,6 @@ package com.minhvu.proandroid.sqlite.database.Utils;
 
 import android.icu.text.SimpleDateFormat;
 
-import java.sql.Date;
 import java.text.ParseException;
 
 /**

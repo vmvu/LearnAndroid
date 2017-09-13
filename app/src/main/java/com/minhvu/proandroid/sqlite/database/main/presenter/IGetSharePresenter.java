@@ -23,6 +23,7 @@ public interface IGetSharePresenter {
     Uri getCurrentUri();
     void loadNote();
     void updateView(Note note);
+    void onDetailOnClick();
 
-    void saveNote(TextView title, EditText content);
+    void saveNote(EditText title, EditText content);
 }

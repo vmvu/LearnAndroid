@@ -17,11 +17,14 @@ import com.minhvu.proandroid.sqlite.database.models.entity.Note;
 
 public class GetShareModel implements IGetShareModel{
     private IGetSharePresenter presenter;
+    private Note note = new Note();
+
 
     @Override
     public void onDestroy(boolean isChangingConfiguration) {
         if(!isChangingConfiguration){
             presenter = null;
+            note = null;
         }
     }
 
@@ -37,15 +40,17 @@ public class GetShareModel implements IGetShareModel{
         NoteDBHelper helper = NoteDBHelper.getInstance(presenter.getActivityContext());
         SQLiteDatabase db = helper.getReadableDatabase();
 
-        String[] projection = new String[]{NoteEntry.COL_TITLE, NoteEntry.COL_CONTENT};
+        String[] projection = new String[]{NoteEntry.COL_TITLE, NoteEntry.COL_CONTENT,
+                NoteEntry.COL_PASSWORD, NoteEntry.COL_PASSWORD_SALT};
         String selection = NoteEntry._ID  + "=?";
         String[] selectionArgs = new String[]{noteId};
 
         Cursor c = db.query(NoteEntry.DATABASE_TABLE, projection,selection, selectionArgs, null, null, null);
         if(c.moveToFirst()){
-            Note note = new Note();
             note.setTitle(c.getString(c.getColumnIndex(NoteEntry.COL_TITLE)));
             note.setContent(c.getString(c.getColumnIndex(NoteEntry.COL_CONTENT)));
+            note.setPassword(c.getString(c.getColumnIndex(NoteEntry.COL_PASSWORD)));
+            note.setPassSalt(c.getString(c.getColumnIndex(NoteEntry.COL_PASSWORD_SALT)));
             c.close();
             db.close();
             return note;
@@ -89,11 +94,12 @@ public class GetShareModel implements IGetShareModel{
     }
 
     @Override
-    public boolean updateNote(String noteId, String content) {
+    public boolean updateNote(String noteId,String title, String content) {
         NoteDBHelper helper = NoteDBHelper.getInstance(presenter.getActivityContext());
         SQLiteDatabase db = helper.getWritableDatabase();
 
         ContentValues cv = new ContentValues();
+        cv.put(NoteEntry.COL_TITLE, title );
         cv.put(NoteEntry.COL_CONTENT, content );
         cv.put(NoteEntry.COL_LAST_ON, System.currentTimeMillis() + "");
 
@@ -106,6 +112,11 @@ public class GetShareModel implements IGetShareModel{
             return true;
         }
         return false;
+    }
+
+    @Override
+    public Note getNote() {
+        return note;
     }
 
 }

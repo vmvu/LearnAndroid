@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,8 +54,6 @@ public class NoteAdapter extends ABookApdater<NoteAdapter.viewHolder> {
     public void onBindViewHolder(viewHolder holder, int position) {
         super.onBindViewHolder(holder, position);
         Note note = mNoteList.get(position);
-        Log.d("Note string", "======onBind=========" + position);
-        note.toString();
         if (note.isDelete()) {
             holder.itemView.setVisibility(View.GONE);
             return;
@@ -65,7 +62,6 @@ public class NoteAdapter extends ABookApdater<NoteAdapter.viewHolder> {
         holder.tvTitle.setText(note.getTitle());
         holder.tvDateCreated.setText(DateTimeUtils.longToStringDate(note.getDateCreated()));
         holder.tvLastOn.setText(DateTimeUtils.longToStringDate(note.getLastOn()));
-        Log.d("Note string", "password here:" + note.getPassword());
 
         if (TextUtils.isEmpty(note.getPassword())) {
             holder.ivLockIcon.setVisibility(View.GONE);
@@ -81,6 +77,8 @@ public class NoteAdapter extends ABookApdater<NoteAdapter.viewHolder> {
         if (isNotePined((int) note.getId())) {
             holder.ivPinIcon.setColorFilter(color.getHeaderColor());
             holder.ivPinIcon.setVisibility(View.VISIBLE);
+        }else{
+            holder.ivPinIcon.setVisibility(View.GONE);
         }
     }
 
@@ -117,8 +115,8 @@ public class NoteAdapter extends ABookApdater<NoteAdapter.viewHolder> {
                 note.setIdColor(newData.getInt(colorPos));
                 note.setPassword(newData.getString(passwordPos));
                 note.setPassSalt(newData.getString(keyPos));
-                note.setDateCreated(DateTimeUtils.stringToLongDate(newData.getString(dateCreatedPos)));
-                note.setLastOn(DateTimeUtils.stringToLongDate(newData.getString(lastUpdatePos)));
+                note.setDateCreated(Long.parseLong( newData.getString(dateCreatedPos)));
+                note.setLastOn(Long.parseLong(newData.getString(lastUpdatePos)));
                 note.setIdTypeOfText(newData.getInt(typePos));
                 if (newData.getInt(deletedPos) == 1) {
                     note.setDelete(true);
@@ -158,7 +156,7 @@ public class NoteAdapter extends ABookApdater<NoteAdapter.viewHolder> {
         private ImageView ivLockIcon;
 
 
-        public viewHolder(View itemView) {
+        viewHolder(View itemView) {
             super(itemView);
             setup(itemView);
             itemView.setOnClickListener(this);

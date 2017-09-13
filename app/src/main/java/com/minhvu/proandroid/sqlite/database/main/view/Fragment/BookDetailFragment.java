@@ -18,6 +18,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
@@ -44,7 +45,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.widget.Switch;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -77,20 +78,22 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
     private IDetailPresenter mMainPresenter;
     private IImagePresenter mImagePresenter;
 
+    ScrollView scrollView;
+
     private EditText etTitle;
     private EditText etContent;
     private ImageButton btnColor;
     ImageButton btnSetting;
     private ViewGroup viewGroup;
     RecyclerView ImageRecyclerView;
-    private ImageAdapter imageAdapter;
+    ImageAdapter imageAdapter;
 
     String currentUri;
 
     private static final int ID_LOADER = 99;
     private static final int TAKE_PHOTO_CODE = 55;
 
-    private boolean mBookHasChanged = true;
+
     private boolean takePhoto_check = true;
     private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
         @Override
@@ -99,14 +102,21 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
             return false;
         }
     };
+    private View.OnTouchListener mTouchOnDisplayKeyboard = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            //InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            //imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
+            etContent.requestFocus();
+            getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+            return false;
+        }
+    };
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-        if (savedInstanceState != null) {
-            mBookHasChanged = savedInstanceState.getBoolean("mBookHasChanged");
-        }
         Uri uri = null;
         Bundle bundle = getArguments();
         if (bundle != null) {
@@ -139,7 +149,7 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
         //set background default
         viewGroup = container;
         View layout = inflater.inflate(R.layout.fragment_detail, container, false);
-
+        scrollView = (ScrollView) layout.findViewById(R.id.sv_content_place);
         etTitle = (EditText) layout.findViewById(R.id.etxtTitle);
         etContent = (EditText) layout.findViewById(R.id.etContent);
         btnSetting = (ImageButton) layout.findViewById(R.id.btnSetting);
@@ -147,11 +157,12 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
         btnColor.setTag(0);
         viewGroup.setBackgroundColor(getResources().getColor(R.color.backgroundColor_default));
         setup(layout);
+
+        scrollView.setOnTouchListener(mTouchOnDisplayKeyboard);
         //restore
         if (savedInstanceState != null) {
             etTitle.setText(savedInstanceState.getString("title"));
             etContent.setText(savedInstanceState.getString("content"));
-            mBookHasChanged = savedInstanceState.getBoolean("mBookHasChanged");
             btnColor.setTag(savedInstanceState.getInt("Color_tag"));
         }
 
@@ -159,6 +170,7 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
             @Override
             public void onClick(View v) {
                 popupColorTable(v);
+                mMainPresenter.onViewHasChanged();
             }
         });
 
@@ -195,11 +207,6 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
 
             }
         });
-
-        if (!TextUtils.isEmpty(contentShare)) {
-            etTitle.setText(contentShare);
-            etContent.setText(contentShare);
-        }
         return layout;
     }
 
@@ -236,9 +243,8 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
         ColorAdapter adapter = new ColorAdapter(getActivity(), new ColorAdapter.IColorAdapter() {
             @Override
             public void onClick(int colorPos) {
-                setColorForPin(colorPos);
+                setColor(colorPos);
                 popup.dismiss();
-                mBookHasChanged = true;
             }
         });
         recyclerView.setAdapter(adapter);
@@ -257,9 +263,8 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
     }
 
 
-    private void setColorForPin(int colorPos) {
+    private void setColor(int colorPos) {
         Color color = Color.getColor(getActivityContext(), colorPos);
-        mMainPresenter.onViewHasChanged();
         btnColor.setColorFilter(color.getHeaderColor());
         btnColor.setTag(colorPos);
         viewGroup.setBackgroundColor(color.getBackgroundColor());
@@ -358,7 +363,11 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
             }
         }*/
         File mediaStorageDir = new File(getActivityContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES), "mvnote");
-        if(!mediaStorageDir.mkdirs()){
+        boolean success = true;
+        if (!mediaStorageDir.exists()) {
+            success = mediaStorageDir.mkdirs();
+        }
+        if (!success) {
             return null;
         }
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -546,7 +555,6 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
         String content = etContent.getText().toString();
         outState.putString("title", title);
         outState.putString("content", content);
-        outState.putBoolean("mBookHasChanged", mBookHasChanged);
         outState.putInt("Color_tag", (int) btnColor.getTag());
         super.onSaveInstanceState(outState);
     }
@@ -565,7 +573,7 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
         etTitle.setText(data.getString(data.getColumnIndex(NoteContract.NoteEntry.COL_TITLE)));
         etContent.setText(data.getString(data.getColumnIndex(NoteContract.NoteEntry.COL_CONTENT)));
         int posColor = data.getInt(data.getColumnIndex(NoteContract.NoteEntry.COL_COLOR));
-        setColorForPin(posColor);
+        setColor(posColor);
     }
 
     @Override
@@ -573,17 +581,6 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
         etTitle.setText("");
         etContent.setText("");
         btnColor.setTag(null);
-    }
-
-    private String contentShare;
-
-    public void setContentShare(String contentShare) {
-        this.contentShare = contentShare;
-        mBookHasChanged = true;
-    }
-
-    public void setBookHasChanged(boolean bookHasChanged) {
-        this.mBookHasChanged = bookHasChanged;
     }
 
 
@@ -614,7 +611,9 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
 
     @Override
     public void finishIfSelf() {
-        getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+        FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+        ft.remove(this).commit();
         getActivity().finish();
     }
+
 }

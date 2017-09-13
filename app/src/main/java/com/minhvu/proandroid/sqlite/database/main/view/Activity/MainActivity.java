@@ -30,13 +30,10 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -54,8 +51,8 @@ public class MainActivity extends AppCompatActivity
     private NoteAdapter bookNoteAdapter;
     private final int ID_BOOK_LOADER = 101;
 
-    private FloatingActionButton fab;
-    private RecyclerView recyclerView;
+    FloatingActionButton fab;
+    RecyclerView recyclerView;
     private int mPosition = RecyclerView.NO_POSITION;
 
 
@@ -89,12 +86,10 @@ public class MainActivity extends AppCompatActivity
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setView(dialogLayout);
             final AlertDialog dialog = builder.create();
-            final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             final EditText editText = (EditText) dialogLayout.findViewById(R.id.etPassWord);
             editText.setFocusable(true);
             ImageButton imgBtnNo = (ImageButton) dialogLayout.findViewById(R.id.btnNo);
             ImageButton imgBtnYes = (ImageButton) dialogLayout.findViewById(R.id.btnYes);
-            imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
 
             imgBtnYes.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -118,7 +113,6 @@ public class MainActivity extends AppCompatActivity
             imgBtnNo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
                     dialog.dismiss();
                 }
             });
@@ -176,8 +170,8 @@ public class MainActivity extends AppCompatActivity
         popupWindow.showAtLocation(layout, Gravity.NO_GRAVITY, point.x, point.y);
         TextView tvTitlePopup = (TextView) layout.findViewById(R.id.tvTitle_Popup);
         tvTitlePopup.setText(note.getTitle());
-        TextView tvDeleltePopup = (TextView) layout.findViewById(R.id.tvDelete_popup);
-        tvDeleltePopup.setOnClickListener(new View.OnClickListener() {
+        TextView tvDeletePopup = (TextView) layout.findViewById(R.id.tvDelete_popup);
+        tvDeletePopup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 deleteBook(uri);

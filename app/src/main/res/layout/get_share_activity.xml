@@ -16,7 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:gravity="center_vertical"
-            android:textColor="#000"
+            android:textColor="#ababab"
             android:paddingLeft="@dimen/align_primary"
             android:text="0 Images" />
 
@@ -43,11 +43,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
-            android:minHeight="150dp"
             android:gravity="center_vertical"
             android:textColor="#000"
-            android:paddingLeft="@dimen/align_primary"
-            android:paddingRight="@dimen/align_primary"
+            android:maxHeight="400dp"
+            android:padding="@dimen/align_primary"
             android:textSize="18sp"
             tools:text="Nhung dong ghi chu duoc chia se tai day, vai chu nua thoi la het mot hang, nhung khong da sang tan thu ba, ghi chu gi ma dai vay. cham het tai day, lai ton them mot hang de ghi chu" />
 
@@ -58,6 +57,16 @@
         android:layout_height="wrap_content"
         android:background="#f4f4f4"
         android:orientation="horizontal">
+        <Button
+            android:id="@+id/btnRemoveTitle"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="5dp"
+            android:gravity="center"
+            android:textColor="#000"
+            android:text="X"
+            android:background="@drawable/radius_white"/>
 
         <ScrollView
             android:layout_width="0dp"
@@ -65,14 +74,16 @@
             android:layout_gravity="center_vertical"
             android:layout_weight="9">
 
-            <TextView
-                android:id="@+id/tvTitle"
+            <EditText
+                android:id="@+id/etTitle"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:gravity="center_vertical"
                 android:maxLines="1"
                 android:textColor="#000"
-                android:paddingLeft="@dimen/align_primary"
+                android:inputType="textLongMessage"
+                android:background="@android:color/transparent"
+                android:paddingLeft="10dp"
                 android:textSize="23sp"
                 android:textStyle="bold"
                 tools:text="tieu de cua ghi chu nay duoc ghi tai day, chu tieu de rat nho kho nhin that" />
@@ -84,8 +95,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:background="#000000"
-            android:src="@drawable/ic_check_black_60dp" />
+            android:background="@drawable/bgchoose"
+            android:src="@drawable/ic_check_orange_24dp" />
     </LinearLayout>
 
 </LinearLayout>

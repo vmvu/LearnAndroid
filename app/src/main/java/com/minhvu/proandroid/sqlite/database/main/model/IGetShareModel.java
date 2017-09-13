@@ -15,5 +15,6 @@ public interface IGetShareModel {
      Note loadNote(String noteId);
      int loadImage(String noteId);
      boolean insertNote(String title, String content);
-     boolean updateNote(String noteId, String content);
+     boolean updateNote(String noteId, String title, String content);
+     Note getNote();
 }
