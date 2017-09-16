@@ -97,7 +97,6 @@ public class DetailPresenter extends MvpPresenter<IDetailModel, IDetailShow> imp
 
     @Override
     public void showTableSetting(View layout, View parent) {
-        Log.d("Pin", "showTableSetting");
         View lock = layout.findViewWithTag("ivLockNote");
         View unlock = layout.findViewWithTag("ivUnLockNote");
         View delete = layout.findViewWithTag("ivDelete");
@@ -123,7 +122,7 @@ public class DetailPresenter extends MvpPresenter<IDetailModel, IDetailShow> imp
                 c.close();
             }
         }
-        int popupWith = 180;
+        int popupWith = 130;
         int popupHeight = 1000;
         int[] local = new int[2];
         parent.getLocationInWindow(local);
@@ -337,16 +336,16 @@ public class DetailPresenter extends MvpPresenter<IDetailModel, IDetailShow> imp
         int idIntType = Integer.parseInt(getNoteID());
         String typeOfSwitch = model.getDataSharePreference(
                 getView().getActivityContext().getString(R.string.PREFS_ALARM_SWITCH_KEY) + getNoteID()).trim();
-        Log.d("Pin", "switchType4: " + typeOfSwitch);
         if (TextUtils.isEmpty(typeOfSwitch)) {
             return;
         }
-        Log.d("Pin", "switchType5: " + typeOfSwitch);
+
         Context ctx = getView().getActivityContext();
         String action_broadcast = ctx.getString(R.string.broadcast_receiver_pin);
         String[] selection = new String[]{NoteContract.NoteEntry.COL_TITLE,
                 NoteContract.NoteEntry.COL_CONTENT, NoteContract.NoteEntry.COL_COLOR, NoteContract.NoteEntry.COL_PASSWORD};
         Note note = queryNote(mCurrentUri, selection, null, null);
+
         Intent intent = new Intent(action_broadcast);
         intent.putExtra(ctx.getString(R.string.notify_note_uri), mCurrentUri.toString());
         intent.putExtra(ctx.getString(R.string.notify_note_title), note.getTitle());
@@ -362,10 +361,14 @@ public class DetailPresenter extends MvpPresenter<IDetailModel, IDetailShow> imp
                 getView().getActivityContext().sendBroadcast(intent);
                 return;
             case "sc15Min":
-                alarm(intent, System.currentTimeMillis() + 15 * 60000, idIntType, false);
+                long time15Min = System.currentTimeMillis() + 15 * 60000;
+                model.setDataSharePreference(ctx.getString(R.string.PREFS_ALARM_WHEN) + getNoteID(),time15Min + "" );
+                alarm(intent,time15Min , idIntType, false);
                 break;
             case "sc30Min":
-                alarm(intent, System.currentTimeMillis() + 30 * 60000, idIntType, false);
+                long time30Min = System.currentTimeMillis() + 30 * 60000;
+                model.setDataSharePreference(ctx.getString(R.string.PREFS_ALARM_WHEN) + getNoteID(),time30Min + "" );
+                alarm(intent,time30Min, idIntType, false);
                 break;
             case "scAtTime":
                 alarmSpecial(intent, idIntType, false);

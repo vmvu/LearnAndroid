@@ -190,4 +190,9 @@ public class GetShareActivity extends AppCompatActivity implements View.OnClickL
         presenter.onDestroy(isChangingConfigurations());
         presenter = null;
     }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+    }
 }

@@ -9,7 +9,7 @@
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <!--<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>-->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
         android:name=".MyApplication"
@@ -58,11 +58,17 @@
         <provider
             android:name=".models.data.NoteProvider"
             android:authorities="@string/content_authority" />
-        <receiver android:name=".receiver.PinBroadcast">
+        <receiver android:name=".receiver.PinBroadcast" android:enabled="true">
             <intent-filter>
                 <action android:name="pinbroadcast" />
             </intent-filter>
         </receiver>
+        <receiver android:name=".receiver.HandlerRebootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+        <service android:name=".services.AlarmRebootService"/>
 
 
     </application>
