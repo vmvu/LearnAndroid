@@ -84,7 +84,12 @@
                     android:id="@+id/btnImageAdd"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:text="Image"/>
+                    android:text="Camera"/>
+                <Button
+                    android:id="@+id/btnImageLocal"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:text="P"/>
             </LinearLayout>
 
 

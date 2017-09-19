@@ -280,7 +280,7 @@ public class DetailPresenter extends MvpPresenter<IDetailModel, IDetailShow> imp
     @Override
     public void onPause(EditText title, EditText content, ImageButton color, int typeOfText, boolean isCheck) {
         //printLog(title, content, color, typeOfText);
-        if (!this.mHasChange) {
+        if (isCheck && !this.mHasChange) {
             return;
         }
         if (isCheck && TextUtils.isEmpty(title.getText().toString()) && TextUtils.isEmpty(content.getText().toString())) {

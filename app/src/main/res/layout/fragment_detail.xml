@@ -122,6 +122,10 @@
                         android:scrollbars="vertical">
 
                     </android.support.v7.widget.RecyclerView>
+                    <ImageView
+                        android:id="@+id/ivTest"
+                        android:layout_width="130dp"
+                        android:layout_height="200dp" />
                 </LinearLayout>
 
 

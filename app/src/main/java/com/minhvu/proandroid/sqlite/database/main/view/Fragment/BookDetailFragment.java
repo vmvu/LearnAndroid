@@ -7,11 +7,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.icu.text.SimpleDateFormat;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
@@ -65,6 +69,8 @@ import com.minhvu.proandroid.sqlite.database.models.data.NoteContract;
 import com.minhvu.proandroid.sqlite.database.models.entity.Color;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 
@@ -92,6 +98,7 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
 
     private static final int ID_LOADER = 99;
     private static final int TAKE_PHOTO_CODE = 55;
+    private static final int PICK_IMAGE_CODE = 54;
 
 
     private boolean takePhoto_check = true;
@@ -157,7 +164,6 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
         btnColor.setTag(0);
         viewGroup.setBackgroundColor(getResources().getColor(R.color.backgroundColor_default));
         setup(layout);
-
         scrollView.setOnTouchListener(mTouchOnDisplayKeyboard);
         //restore
         if (savedInstanceState != null) {
@@ -322,6 +328,13 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
                 }
             }
         });
+        Button btnImageStorage = (Button) layout.findViewById(R.id.btnImageLocal);
+        btnImageStorage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickImageFromStorage();
+            }
+        });
         mMainPresenter.showTableSetting(layout, view);
     }
 
@@ -343,25 +356,47 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
         }
     }
 
+    private void pickImageFromStorage(){
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+        }
+        else{
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+        }
+        takePhoto_check = false;
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_CODE);
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == TAKE_PHOTO_CODE && resultCode == FragmentActivity.RESULT_OK && !TextUtils.isEmpty(currentUri)) {
-            mImagePresenter.addImage(currentUri, mMainPresenter.getCurrentUri());
-            currentUri = "";
+        if(resultCode == FragmentActivity.RESULT_OK){
+            if (requestCode == TAKE_PHOTO_CODE  && !TextUtils.isEmpty(currentUri)) {
+                mImagePresenter.addImage(currentUri, mMainPresenter.getCurrentUri());
+                currentUri = "";
+            }
+            if(requestCode == PICK_IMAGE_CODE && data.getData() != null){
+                Uri uri = data.getData();
+                try{
+                    savePickImage(getBitmapFromUri(uri));
+                    if(!TextUtils.isEmpty(currentUri)){
+                        mImagePresenter.addImage(currentUri, mMainPresenter.getCurrentUri());
+                        currentUri = "";
+                    }
+                }catch (IOException e){
+                    Log.d("pick_image_storage","miss");
+                }
+
+            }
         }
+
         takePhoto_check = true;
     }
 
     // this section is for camera features
     private File getOutputMediaFile() throws IOException {
-        /*File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "mvnote");
-        //getActivityContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        if (!mediaStorageDir.exists()) {
-            if (!mediaStorageDir.mkdir()) {
-                Log.d("takePhoto", "failed to create directory");
-                return null;
-            }
-        }*/
         File mediaStorageDir = new File(getActivityContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES), "mvnote");
         boolean success = true;
         if (!mediaStorageDir.exists()) {
@@ -376,6 +411,24 @@ public class BookDetailFragment extends Fragment implements IDetailShow, LoaderM
         Log.d("takePhoto", "absolutePath:" + currentUri);
         return image;
     }
+    private Bitmap getBitmapFromUri(Uri uri) throws IOException{
+        ParcelFileDescriptor parcelFileDescriptor = getActivity().getContentResolver().openFileDescriptor(uri, "r");
+        FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+        Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
+        parcelFileDescriptor.close();
+        return image;
+    }
+
+    private void savePickImage(final Bitmap bitmap) throws IOException {
+        File file = getOutputMediaFile();
+        FileOutputStream fos = new FileOutputStream(file);
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+        fos.flush();
+        fos.close();
+    }
+
+
+
 
     private void setupViewForPasswordFeature(LayoutInflater inflater, final View layoutParent) {
         Log.d("Pin", "vao day");
